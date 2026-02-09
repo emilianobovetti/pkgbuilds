@@ -1,0 +1,37 @@
+pkgname=lc0
+pkgver=0.32.1
+pkgrel=1
+url="https://lczero.org"
+arch=(x86_64)
+license=("GPL-3.0-or-later")
+pkgdesc="Open source neural network chess engine with GPU acceleration and broad hardware support"
+
+# ref: https://github.com/LeelaChessZero/lc0/wiki/Networks
+_weights=t3-512x15x16h-distill-swa-2767500.pb.gz
+
+source=("${pkgname}-${pkgver}.tar.gz::https://github.com/LeelaChessZero/${pkgname}/archive/refs/tags/v${pkgver}.tar.gz"
+        "${_weights}::https://storage.lczero.org/files/networks-contrib/${_weights}")
+sha256sums=('78b17e8e8d29da30492c86fdac69c519816f4a9d9c3b787dc41a6f9e8d20fde3'
+            '78541c4abc0bc81e8145e1f9a4c35a934ebbefff70f11f33215751d55a886352')
+noextract=("${_weights}")
+makedepends=("meson" "eigen" "blas-openblas")
+
+
+build() {
+  meson setup \
+    "${srcdir}/${pkgname}-${pkgver}/build/release" \
+    "${srcdir}/${pkgname}-${pkgver}" \
+    -Dcpp_args=-I/usr/include/eigen3 \
+    --buildtype release \
+    --prefix /usr
+
+  meson compile -C "${srcdir}/${pkgname}-${pkgver}/build/release"
+}
+
+package() {
+  install -Dm755 \
+    "${srcdir}/${pkgname}-${pkgver}/build/release/${pkgname}" \
+    "${pkgdir}/usr/bin/${pkgname}"
+
+  install -Dm644 "${srcdir}/${_weights}" "${pkgdir}/usr/share/${pkgname}/${_weights}"
+}
