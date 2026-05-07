@@ -1,12 +1,12 @@
 pkgname=llama.cpp-cuda
-pkgver=b9018
+pkgver=b9064
 pkgrel=1
 # latest commit (git rev-parse --short HEAD)
-# https://github.com/ggml-org/llama.cpp/commits/b9018/
+# https://github.com/ggml-org/llama.cpp/commits/b9064/
 _commit_id=c84e6d6
 # raw commit number (git rev-list --count HEAD)
-# https://github.com/ggml-org/llama.cpp/blob/b9018/.github/workflows/build-cmake-pkg.yml#L31
-_build_number=9018
+# https://github.com/ggml-org/llama.cpp/blob/b9064/.github/workflows/build-cmake-pkg.yml#L31
+_build_number=9064
 pkgdesc="LLM inference in C/C++"
 arch=(x86_64 armv7h aarch64)
 url="https://github.com/ggerganov/llama.cpp"
@@ -14,14 +14,12 @@ license=(MIT)
 depends=(
   cuda
   curl
-  gcc-libs
-  glibc
   nvidia-utils
 )
 makedepends=(
   cmake
-  gcc14
   ninja
+  cudnn
 )
 optdepends=(
   "python-numpy: needed for convert_hf_to_gguf.py"
@@ -29,23 +27,22 @@ optdepends=(
   "python-sentencepiece: needed for convert_hf_to_gguf.py"
   "python-pytorch: needed for convert_hf_to_gguf.py"
   "python-transformers: needed for convert_hf_to_gguf.py"
+  "python-gguf: needed for convert_hf_to_gguf.py"
 )
 provides=(llama.cpp)
 conflicts=(llama.cpp libggml ggml)
+backup=("etc/conf.d/llama.cpp")
 source=("${pkgname}-${pkgver}.tar.gz::https://github.com/ggml-org/llama.cpp/archive/refs/tags/${pkgver}.tar.gz")
-sha256sums=('0cd6c8d07ce4f316b5172fe9cfc07ea0d74744bcacaa2dde01512f634c496074')
+sha256sums=('574936bb0eaacc916397539ba091246f5563e4afec56db4ca054cb7cf86bada2')
 
 build() {
-  export NVCC_CCBIN="/usr/bin/g++-14"
-  export CC="/usr/bin/gcc-14"
-  export CXX="/usr/bin/g++-14"
-  export CUDAHOSTCXX="/usr/bin/g++-14"
-
   cmake \
     -B build \
     -G Ninja \
     -S "${srcdir}/llama.cpp-${pkgver}" \
+    --fresh \
     -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_CUDA_HOST_COMPILER="${CUDAHOSTCXX:-/usr/bin/g++-15}" \
     -DCMAKE_INSTALL_PREFIX='/usr' \
     -DBUILD_SHARED_LIBS=ON \
     -DLLAMA_BUILD_TESTS=OFF \
